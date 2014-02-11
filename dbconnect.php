@@ -1,4 +1,4 @@
 <?php
 mysql_connect("localhost","root","");
-mysql_selectdb("attendance");
+mysql_selectdb("new_fpa");
 ?>
