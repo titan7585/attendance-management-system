@@ -46,7 +46,7 @@ $result = mysql_query("SELECT id FROM faculty") or die(mysql_error());
 			//define the message to be sent. Each line should be separated with \n
 			$message = $output;
 			//define the headers we want passed. Note that they are separated with \r\n
-			$headers = "From: sourav.fb.90@gmail.com\r\nReply-To: sourav.fb.90@gmail.com\r\n";
+			$headers = "From: your_mail@gmail.com\r\nReply-To: your_mail@gmail.com\r\n";
 			$headers .= "MIME-Version: 1.0\r\n";
 			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 			//send the email
