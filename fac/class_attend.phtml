@@ -29,21 +29,26 @@ if ($row = mysql_fetch_array($result)) {
             </select>
         </div>
         
-        <div class="field">
+        <div class="field" id="fromdate">
             <br>
             <label>From</label>
-            <input type="text" name="from" class="datepicker" value="" />
+            <input type="text"  name="from" class="datepicker" value="" />
         </div>
         <br>
-        <div class="field">
+        <div class="field" id="todate">
             <label>To</label>
-            <input type="text" name="till" class="datepicker" value="" />
+            <input type="text"  name="till" class="datepicker" value="" />
 
         </div>
         <div class="field">
            <br>
             <input type="checkbox" name="viewst" value="sdfafs"  onclick="show1('hidden');"/>
            View For Specific student
+        </div>
+		<div class="field">
+           <br>
+            <input type="checkbox" name="tilldate" value=""  onclick="changeDates('fromdate', 'todate');"/>
+           Show Till Today
         </div>
         <div class="field" id="hidden">
             <br><label>ID</label><input type="text" name="id" value="" />
@@ -64,14 +69,11 @@ if ($row = mysql_fetch_array($result)) {
 <?php
 if (array_key_exists('save', $_POST)) 
 {
-    include 'functions.php';
-    $from = $_POST["from"];
-    $till = $_POST["till"];
-    $c_id = $_GET["id"];
-    $type = $_POST["type"];
-    $rollno = $_POST["id"];
 
-    //check for date boundries
+	include 'functions.php';
+	
+	$c_id = $_GET["id"];
+	//check for date boundries
     $query =    "
                 SELECT starting_date , finishing_date
                 FROM course_details
@@ -79,16 +81,39 @@ if (array_key_exists('save', $_POST))
                 ";
     $result = mysql_query($query) or die(mysql_errno());
     $row    = mysql_fetch_array($result);
+	
+	
+    
+	if(!isset($_POST["tilldate"])){
+		$from = $_POST["from"];
+	}
+	else{
+		$from = $row['starting_date'];
+	}
+	if(!isset($_POST["tilldate"])){
+		$till = $_POST["till"];
+	}
+	else{
+		$till = date('Y-m-d');
+	}
+    
+    $type = $_POST["type"];
+    $rollno = $_POST["id"];
+
+    
     
     // http://in3.php.net/manual/en/datetime.diff.php
     
     $dt1 = new DateTime($from);
     $date_from = $dt1->format('Y-m-d'); //date
+	//$s_date = new DateTime($row['starting_date']);
+	//$start_date = $s_date->format('Y-m-d');
     
     $dt = new DateTime($till);
     $date_till = $dt->format('Y-m-d'); //date
+	
         
-    $today = date("Y-m-d");
+    $today = date('Y-m-d');
 	
     if (($date_from > $row['finishing_date']) or ($date_till < $row['starting_date']) )
     {
@@ -156,7 +181,10 @@ if (array_key_exists('save', $_POST))
 		else
                 {
                     //total class, extra class, cancelled class
-                    class_details($con,$c_id,$from,$till);
+                    $t=class_details($con,$c_id,$from,$till);
+					//$till_today = class_details($con, $c_id, $start_date, $today);
+					
+					//$sri=class_details($con,$c_id,$from,$till);
                 
                     //get the schedule for this course for entire week
                     $schedule = array();
@@ -165,7 +193,7 @@ if (array_key_exists('save', $_POST))
                     //initialize holidays in holid array
                     $holid = array();
                     $holid = initialize_holid($holid, $from, $till, $con);
-                    
+                    //$holid_till_today = initialize_holid($holid, $start_date, $today, $con);
                     //chart_initialize
                     //setting up the chart table
                     //actual report
@@ -177,8 +205,8 @@ if (array_key_exists('save', $_POST))
                     $chart = initialize_chart($chart, $chart1, $schedule, $from, $till, $con , $c_id);
             
                     //classes when user is present and it's count
-                    report($con,$rollno,$c_id,$from,$till,$type , $schedule , $holid , $chart);
-                   
+                    report($con,$rollno,$c_id,$from,$till,$type , $schedule , $holid , $chart, $t);
+					//report($con,$rollno,$c_id,$start_date,$today,$type , $schedule , $holid_till_today , $chart, $till_today);
                 }
         }
         else{
@@ -186,8 +214,9 @@ if (array_key_exists('save', $_POST))
             echo "For course " . $c_id . "<br><br>";
 
             //total class, extra class, cancelled class
-            class_details($con, $c_id, $from, $till);
-
+            $t=class_details($con, $c_id, $from, $till);
+			//$till_today = class_details($con, $c_id, $start_date, $today);
+			
             $query = "  SELECT reg.name , reg.id_no 
                 	FROM registered reg , enrolled_details ed  
 			WHERE ed.course_id='$c_id' AND reg.id_no=ed.id_no ";
@@ -210,6 +239,7 @@ if (array_key_exists('save', $_POST))
             //initialize holidays in holid array
             $holid = array();
             $holid = initialize_holid($holid, $from, $till, $con);
+			//$holid_till_today = initialize_holid($holid, $start_date, $today, $con);
             
             //chart_initialize
             //setting up the chart table
@@ -234,8 +264,8 @@ if (array_key_exists('save', $_POST))
                 $rollno = $stu_roll_list[$i];
                                 
                 //classes when user is present and it's count
-                report($con,$rollno,$c_id,$from,$till,$type , $schedule , $holid , $chart);
-
+                report($con,$rollno,$c_id,$from,$till,$type , $schedule , $holid , $chart, $t);
+				//report($con,$rollno,$c_id,$start_date,$today,$type , $schedule , $holid_till_today , $chart, $till_today);
                 $i = $i + 1;
             }//while loop end
         }}//class view end

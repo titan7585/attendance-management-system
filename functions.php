@@ -1,5 +1,6 @@
 <?php
 
+//$student = array();
 function initialize_holid($holid, $from, $till, $con) 
 {
     $date = $from;
@@ -33,10 +34,12 @@ function initialize_holid($holid, $from, $till, $con)
 }
 
 
-function print_chart($chart, $from, $till, $type, $holid) 
+function print_chart($chart, $from, $till, $type, $holid,$t,$con, $rollno) 
 {   
     $present_days = 0;
     $absent_days = 0;
+	
+	//$t=class_details($con, $c_id, $from, $till);
 
     $date = $from;
     $end_date = $till;
@@ -180,7 +183,19 @@ function print_chart($chart, $from, $till, $type, $holid)
     echo "<br>";
     if ($type == "Absent" || $type == "Complete")
         echo "# Absent classes  =   " . $absent_days;
-    echo "<br><br>  -   -   -   -   -   -   -   -   -   -<br><br>";
+	echo "<br>";
+	$result = mysql_query("select name from registered where id_no='$rollno'") or die(mysql_error());
+	$row = mysql_fetch_array($result);
+	$stud_name = $row['name'];
+	$_SESSION[$stud_name] = $stud_name;
+	
+	
+		$percent = ($present_days/$t)*100;
+		//$user[$rollno] = $percent;
+		$_SESSION[$rollno] = round($percent, 2);
+echo "attendance percentage :" . round($percent, 2);
+
+		echo "<br><br>  -   -   -   -   -   -   -   -   -   -<br><br>";
 }
 
 
@@ -258,6 +273,9 @@ function initialize_chart($chart, $chart1, $schedule, $from, $till, $con , $c_id
         }
         $date = date("Y-m-d", strtotime("+1 day", strtotime($date)));
     }
+	echo "<form name='email' action='automail.php' method='get'>
+				<input type='submit' name='submit' value='Email'>
+			</form>";
     return $chart;
 }
 
@@ -304,7 +322,7 @@ function get_schedule($schedule , $c_id , $con)
     return $schedule;
 }
 
-function report($con, $rollno, $c_id, $from, $till, $type ,$schedule , $holid , $chart) {
+function report($con, $rollno, $c_id, $from, $till, $type ,$schedule , $holid , $chart, $t) {
 
         /*
         //intialize holiday array
@@ -526,7 +544,7 @@ function report($con, $rollno, $c_id, $from, $till, $type ,$schedule , $holid , 
             $date = date("Y-m-d", strtotime("+1 day", strtotime($date)));
         }//while loop ends
         
-        print_chart($chart, $from, $till, $type, $holid);
+        print_chart($chart, $from, $till, $type, $holid, $t, $con, $rollno);
     }//present day ends
 
 function class_details($con, $c_id, $from, $till) {
@@ -642,7 +660,7 @@ function class_details($con, $c_id, $from, $till) {
 
         $total_class = $total_class - $class_count[$day];
     }
-    
+    $t;
     $t = $total_class - $cancelled_class + $extra_class ;
  
     echo "<TABLE borderColor=#000000  cellSpacing=0 cellPadding=\"10\" border=0>\n";
@@ -651,7 +669,8 @@ function class_details($con, $c_id, $from, $till) {
     echo "<TR><TD>Total cancelled :	</TD>" . "<TD class=\"val\">" . $cancelled_class . "</TD></TR>";
     echo "<TR><TD>Total extra :	</TD>" . "<TD class=\"val\">" . $extra_class . "</TD></TR>";
     echo "<TR><TD>Total classes happened : </TD>" ."<TD class=\"val\">" . $t ."</TD></TR>";
-    echo "</TABLE><br><br>";
+	echo "</TABLE><br><br>";
+	return $t;
 }
 
 function db_connect() {
